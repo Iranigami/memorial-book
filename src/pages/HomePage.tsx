@@ -4,23 +4,60 @@ import filter from "../assets/images/icons/filter-icon.svg";
 import scroll from "../assets/images/icons/scroll-icon.svg";
 import photo from "../assets/images/temp-person.png";
 import bg from "../assets/images/bg.jpg";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FilterModal from "../comps/FilterModal";
+import axios from "axios";
+import { Person, Persons } from "../conf";
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const observer = useRef<IntersectionObserver | null>(null)
   const [isModalOpen, setModalOpen] = useState(false);
-  useEffect(() => {}, []);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [allPersons, setAllPersons] = useState<Persons>([]);
+  const [isLastPageLoaded, setLastPageLoaded] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+
+    const lastItemRef = useCallback((node: any) => {
+      if (isLoading) return
+      if (observer.current) observer.current.disconnect() 
+  
+      observer.current = new IntersectionObserver(entries => { 
+        if (entries[0].isIntersecting && !isLastPageLoaded) {
+          setCurrentPage(currentPage+1)
+        }
+      })
+  
+      if (node) observer.current.observe(node) 
+    }, [isLoading])
+  
+  
+  useEffect(() => {
+    setLoading(true);
+    const apiUrl = `https://book-memory-sections-out.itlabs.top/api/members`;
+    axios.get(apiUrl, {
+      params: {
+        itemsPerPage: 50,
+        page: currentPage,
+      }
+    })    .then(response => {
+      (response.data[0] === undefined) && setLastPageLoaded(true)
+      setAllPersons(prevState => [
+        ...prevState,
+        ...response.data
+      ]);
+      setLoading(false);    })
+  }, [currentPage]);
+
 
   function changeScrollerPosition() {
     const winScroll = document.getElementById("scrollable")!.scrollLeft;
     const width =
-      document.getElementById("scrollable")!.scrollWidth -
-      document.documentElement.clientWidth;
-    const scrolled = (winScroll / width) * 100;
+      document.getElementById("scrollable")!.scrollWidth;
+    const scrolled = (winScroll / width) * 10000;
     document.getElementById("horScroll")!.style.translate =
-      scrolled * 7.5 + "px";
+      scrolled + "px";
   }
 
   return (
@@ -61,38 +98,37 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+        {(isLoading && currentPage===1) && (
+          <div className="w-[50px] h-[50px] outline outline-dotted outline-light-brown outline-[10px] rounded-full animate-spin absolute left-0 right-0 mx-auto mt-[180px]"/>
+        )}
         <div
+          hidden = {(isLoading&&currentPage===1)}
           className={`w-[1840px] overflow-x-scroll hide-scroll grid grid-rows-2 grid-flow-col gap-[16px] mt-[40px]`}
           id="scrollable"
           onScroll={function () {
             changeScrollerPosition();
           }}
         >
-          <div className="col-span-2 row-span-2 w-[428px] h-[571px] relative items-end flex p-[24px]">
-            <img
-              src={photo}
-              alt="photo"
-              className="w-full h-full absolute z-[-1] m-[-24px]"
-            />
-            <span className="w-full text-white leading-[100%] tracking-[0px] italic text-[28px] font-bold z-1">
-              Михаил Петрович <br /> Зубенко
-            </span>
-          </div>
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((index: number) => (
+          {allPersons!.map((person: Person, index: number) => (
             <div
+              onClick = {() => navigate(`/person/${person.id}`)}
               key={index}
-              className="w-[208px] h-[277px] relative items-end flex p-[12px]"
+              className={`relative items-end flex ${index === 0 ? "col-span-2 row-span-2 w-[428px] h-[571px] p-[24px]" : "w-[208px] h-[277px] p-[12px]"}`}
             >
               <img
                 src={photo}
                 alt="photo"
-                className="w-full h-full absolute z-[-1] m-[-12px]"
+                className={`w-full h-full absolute z-[-1] ${index === 0 ? "m-[-24px]" : "m-[-12px]"}`}
               />
-              <span className="w-full text-white leading-[100%] tracking-[0px] italic text-[16px] font-bold z-1">
-                Михаил Петрович <br /> Зубенко
+              <span className={`w-full text-white leading-[100%] tracking-[0px] italic font-bold z-1 ${index === 0 ? "text-[28px]" : "text-[16px]"}`}>
+                {person.name}
               </span>
             </div>
           ))}
+            <div 
+              hidden = {isLastPageLoaded}
+              ref={lastItemRef}
+              className="w-[30px] h-[30px] outline outline-dotted outline-light-brown outline-[10px] rounded-full animate-spin mx-auto mt-[100px]"/>
         </div>
       </div>
       <FilterModal opened={isModalOpen} onClose={() => setModalOpen(false)} />

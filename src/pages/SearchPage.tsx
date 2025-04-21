@@ -2,9 +2,17 @@ import Header from "../comps/Header";
 import bg from "../assets/images/bg.jpg";
 import searchIcon from "../assets/images/icons/search-icon.svg";
 import { useNavigate } from "react-router-dom";
+import { ChangeEvent, useState } from "react";
 
 export default function SearchPage() {
   const navigate = useNavigate();
+  const [text, setText] = useState("");
+  const inputField = document.getElementById("search")!;
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const currAnswer = event.target.value;
+    setText(currAnswer);
+  };
+
   return (
     <>
       <Header darkMode={true} />
@@ -20,15 +28,22 @@ export default function SearchPage() {
         </div>
         <div className="mt-[65px] w-[872px] h-[80px] justify-center flex mx-auto relative items-center">
           <input
+            onChange={handleChange}
+            value={text}
+            autoComplete="off"
             id="search"
             placeholder="Кого вы ищите?"
             className="focus:outline-none w-full h-full px-[32px] italic font-normal text-[32px] leadind-[100%] tracking-[0px] border-b-[2px] border-[#C1A886]"
           />
-          <img
+          <button
+            className="absolute right-[12px] size-[48px]"
+            onClick={()=>{navigate(`/result?name=${(inputField as HTMLInputElement).value}`)}}>
+            <img
+            className="size-[48px]"
             src={searchIcon}
             alt="search"
-            className="absolute right-[12px] size-[48px]"
           />
+          </button>
         </div>
         <button
           onClick={() => navigate("/")}

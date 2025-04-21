@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -11,13 +11,16 @@ import SearchResultPage from "./pages/SearchResultsPage";
 import PersonPage from "./pages/PersonPage";
 
 function App() {
+
+  const id = useRef(0);
+
   return (
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<SearchPage />} />
-        <Route path="/results" element={<SearchResultPage />} />
-        <Route path="/person/:personId" element={<PersonPage />} />
+        <Route path="/result" element={<SearchResultPage />} />
+        <Route path="/person/:personId" element={<PersonPage/>} />
       </Routes>
     </Router>
   );

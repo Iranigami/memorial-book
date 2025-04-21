@@ -1,8 +1,11 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import close from "../assets/images/icons/x-icon.svg";
-import DoubleSlider from "./DoubleSlider";
 import check from "../assets/images/icons/check-icon.svg";
-
+import axios from "axios";
+import { Filters } from "../conf";
+import { useNavigate } from "react-router-dom";
+import noUiSlider from 'nouislider';
+import 'nouislider/dist/nouislider.css';
 type Props = {
   onClose: () => void;
   opened: boolean;
@@ -12,43 +15,37 @@ export default function FilterModal({ onClose, opened }: Props) {
   const [selectedRank, setRank] = useState<string>();
   const [selectedWord, setWord] = useState<string>();
   const startYear = useRef(0);
-  const endYear = useRef(1946);
+  const endYear = useRef(1999);
+  const [filter, setFilter] = useState<Filters>({});
+  const [isLoading, setLoading] = useState(true);
+  const [isRanksOpenedFull, setRanksOpenedFull] = useState(false);
+  const navigate = useNavigate();
 
-  const tempFilter = {
-    yearStart: 0,
-    yearEnd: 1946,
-    rank: ["Батальонный Комиссар", "Ветврач", "Военврач"],
-    word: [
-      "А",
-      "Б",
-      "В",
-      "Г",
-      "Д",
-      "Е",
-      "Ж",
-      "З",
-      "И",
-      "К",
-      "Л",
-      "М",
-      "Н",
-      "О",
-      "П",
-      "Р",
-      "С",
-      "Т",
-      "У",
-      "Ф",
-      "Х",
-      "Ц",
-      "Ч",
-      "Ш",
-      "Щ",
-      "Э",
-      "Ю",
-      "Я",
-    ],
-  };
+  useEffect(() => {
+    setLoading(true);
+    const apiUrl = 'https://book-memory-sections-out.itlabs.top/api/members/filters/get';
+    axios.get(apiUrl).then((r) => {
+      setFilter(r.data);
+      setLoading(false);
+    });
+  }, []);
+  
+  var slider = document.getElementById('slider');
+  //@ts-ignore
+  if (slider && slider.noUiSlider) {
+  //@ts-ignore
+    slider.noUiSlider.destroy();
+}
+  if (slider !== null) {
+    noUiSlider.create(slider, {
+        start: [0, 1950],
+        connect: true,
+        range: {
+            min: Number(filter.yearStart) || 0,
+            max: Number(filter.yearEnd) || 1999
+        }
+    });
+}
 
   return (
     <div
@@ -70,18 +67,17 @@ export default function FilterModal({ onClose, opened }: Props) {
         <div className="font-normal text-[24px] leading-[100%] tracking-[2.9px] text-left uppercase text-brown mt-[44px] h-[28px]">
           Дата рождения
         </div>
-        <div className="w-[399px] h-[32px] bg-red mt-[20px]" />
-        {/* Заменить на норм слайдер */}
+        <div id="slider"></div>
         <div className="mt-[20px] flex block w-full h-[53px] gap-[20px]">
-          <input className="w-[184px] h-full border border-light-brown focus:outline-none p-[16px] font-normal text-[18px] leading-[100%] tracking-[2.16px] uppercase text-brown" />
-          <input className="w-[184px] h-full border border-light-brown focus:outline-none p-[16px] font-normal text-[18px] leading-[100%] tracking-[2.16px] uppercase text-brown" />
+          <input value={filter.yearStart} className="w-[184px] h-full border border-light-brown focus:outline-none p-[16px] font-normal text-[18px] leading-[100%] tracking-[2.16px] uppercase text-brown" />
+          <input value={filter.yearEnd} className="w-[184px] h-full border border-light-brown focus:outline-none p-[16px] font-normal text-[18px] leading-[100%] tracking-[2.16px] uppercase text-brown" />
         </div>
       </div>
       <div className="mt-[44px] w-[388px]">
         <div className="font-normal text-[24px] leading-[100%] tracking-[2.9px] text-left uppercase text-brown mt-[44px] h-[28px]">
           Звание
         </div>
-        {tempFilter.rank.map((data: string, index: number) => (
+        {!isLoading && filter.rank!.slice(0, isRanksOpenedFull ? undefined : 3).map((data: string, index: number) => (
           <div
             key={index}
             onClick={() => {selectedRank===data ? setRank(undefined) : setRank(data)}}
@@ -100,13 +96,16 @@ export default function FilterModal({ onClose, opened }: Props) {
             {data}
           </div>
         ))}
+        <div onClick={() => setRanksOpenedFull(!isRanksOpenedFull)} className="text-[18px] font-bold text-red leading-[100%] tracking-[2.16px] mt-[20px]">
+          {isRanksOpenedFull ? "Скрыть" : "Посмотреть все"}
+        </div>
       </div>
-      <div className="mt-[44px] w-[388px]">
+      <div className="mt-[44px] w-[388px] mb-[44px]">
         <div className="font-normal text-[24px] leading-[100%] tracking-[2.9px] text-left uppercase text-brown mt-[44px] h-[28px]">
           По буквам
         </div>
         <div className="grid grid-cols-7 gap-[16px] mt-[20px]">
-        {tempFilter.word.map((data: string, index: number) => (
+        {!isLoading && filter.word!.map((data: string, index: number) => (
           <div
             key={index}
             onClick={() => {selectedWord===data ? setWord(undefined) : setWord(data)}}
@@ -119,9 +118,11 @@ export default function FilterModal({ onClose, opened }: Props) {
       </div>
 
       </div>
-      <div className="flex inline w-[388px] h-[220px] absolute left-[80px] bottom-0 justify-center">
+      <div className="flex inline w-[388px] h-[220px] absolute left-[80px] bottom-[-20px] justify-center">
           <button 
-            onClick={()=>{}}
+            onClick={()=>{
+            navigate(`/result?yearStart=${startYear.current}&yearEnd=${endYear.current}&ranks=${selectedRank}&word=${selectedWord}`)
+            }}
             className="w-full h-[69px] bg-red font-normal flex text-[18px] leading-[100%] tracking-[2.16px] items-center text-center uppercase text-white justify-center flex">     
             Применить
           </button>
