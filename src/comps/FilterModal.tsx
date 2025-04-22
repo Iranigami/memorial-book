@@ -15,11 +15,12 @@ export default function FilterModal({ onClose, opened }: Props) {
   const [selectedRank, setRank] = useState<string>();
   const [selectedWord, setWord] = useState<string>();
   const startYear = useRef(0);
-  const endYear = useRef(1999);
+  const endYear = useRef(1990);
   const [filter, setFilter] = useState<Filters>({});
   const [isLoading, setLoading] = useState(true);
   const [isRanksOpenedFull, setRanksOpenedFull] = useState(false);
   const navigate = useNavigate();
+  var slider = document.getElementById('slider');
 
   useEffect(() => {
     setLoading(true);
@@ -30,7 +31,14 @@ export default function FilterModal({ onClose, opened }: Props) {
     });
   }, []);
   
-  var slider = document.getElementById('slider');
+  const formatForSlider = {
+    from: function (formattedValue: number) {
+      return Number(formattedValue);
+    },
+    to: function (numericValue: number) {
+      return Math.round(numericValue);
+    },
+  };
   //@ts-ignore
   if (slider && slider.noUiSlider) {
   //@ts-ignore
@@ -38,14 +46,32 @@ export default function FilterModal({ onClose, opened }: Props) {
 }
   if (slider !== null) {
     noUiSlider.create(slider, {
-        start: [0, 1950],
+        start: [startYear.current, endYear.current],
+        padding: 70,
         connect: true,
         range: {
-            min: Number(filter.yearStart) || 0,
-            max: Number(filter.yearEnd) || 1999
-        }
+            min: Number(filter.yearStart) + 70 || 0,
+            max: Number(filter.yearEnd) + 70 || 2000
+        },
+    //@ts-ignore
+        format: formatForSlider,
     });
 }
+
+const formatValues = [
+  document.getElementById("min_num"),
+  document.getElementById("max_num"),
+];
+
+if (slider!= null && formatValues!=null)
+  //@ts-ignore
+slider.noUiSlider.on("update", function (values: string[], handle: number) {
+  (formatValues[handle] as HTMLInputElement).value = values[handle];
+  startYear.current = Number(values[0]);
+  endYear.current = Number(values[1]);
+
+});
+
 
   return (
     <div
@@ -67,10 +93,10 @@ export default function FilterModal({ onClose, opened }: Props) {
         <div className="font-normal text-[24px] leading-[100%] tracking-[2.9px] text-left uppercase text-brown mt-[44px] h-[28px]">
           Дата рождения
         </div>
-        <div id="slider"></div>
-        <div className="mt-[20px] flex block w-full h-[53px] gap-[20px]">
-          <input value={filter.yearStart} className="w-[184px] h-full border border-light-brown focus:outline-none p-[16px] font-normal text-[18px] leading-[100%] tracking-[2.16px] uppercase text-brown" />
-          <input value={filter.yearEnd} className="w-[184px] h-full border border-light-brown focus:outline-none p-[16px] font-normal text-[18px] leading-[100%] tracking-[2.16px] uppercase text-brown" />
+        <div className="slider w-[388px] max-h-[8px] mt-[32px] outline-none" id="slider"></div>
+        <div className="mt-[32px] flex block w-full h-[53px] gap-[20px]">
+          <input type="number" id="min_num" className="w-[184px] h-full border border-light-brown focus:outline-none p-[16px] font-normal text-[18px] leading-[100%] tracking-[2.16px] uppercase text-brown" />
+          <input type="number" id="max_num" className="w-[184px] h-full border border-light-brown focus:outline-none p-[16px] font-normal text-[18px] leading-[100%] tracking-[2.16px] uppercase text-brown" />
         </div>
       </div>
       <div className="mt-[44px] w-[388px]">

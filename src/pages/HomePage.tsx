@@ -11,6 +11,10 @@ import axios from "axios";
 import { Person, Persons } from "../conf";
 
 export default function HomePage() {
+
+
+
+
   const navigate = useNavigate();
   const observer = useRef<IntersectionObserver | null>(null)
   const [isModalOpen, setModalOpen] = useState(false);
@@ -18,6 +22,41 @@ export default function HomePage() {
   const [allPersons, setAllPersons] = useState<Persons>([]);
   const [isLastPageLoaded, setLastPageLoaded] = useState(false);
   const [isLoading, setLoading] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  const handScroller = document.getElementById("handScroll")!;
+
+  if(handScroller!==null) {
+    handScroller.ondragstart = function() {
+      return false;
+    };
+    handScroller.onmousedown = function(event) { 
+      handScroller.style.position = 'absolute';
+      handScroller.style.zIndex = "1000";
+    
+      moveAt(event.pageX);
+      function moveAt(pageX: number) {
+        setIsScrolling(true);
+        const limitPageX = (pageX > 2000 ? 900 : (pageX < 1100 ? 0 : pageX - 1100))
+        handScroller.style.translate = limitPageX + 'px';
+        document.getElementById("scrollable")!.scrollLeft = limitPageX * (11200 * currentPage + 428 - document.documentElement.clientWidth) / 1500;
+
+      }
+    
+      function onMouseMove(event: any) {
+        moveAt(event.pageX);
+      }
+      document.addEventListener('mousemove', onMouseMove);
+      handScroller.onmouseup = function() {
+        document.removeEventListener('mousemove', onMouseMove);
+        handScroller.onmouseup = null;
+        setIsScrolling(false);
+        changeScrollerPosition();
+      };
+    
+    };
+  }
+
 
     const lastItemRef = useCallback((node: any) => {
       if (isLoading) return
@@ -32,7 +71,24 @@ export default function HomePage() {
       if (node) observer.current.observe(node) 
     }, [isLoading])
   
+    const mousePos = useRef({x: 0, y: 0});
+
+    useEffect(() => {
+      const handleMouseMove = (event: any) => {
+        mousePos.current= { x: event.clientX, y: event.clientY };
+      };
   
+      window.addEventListener('mousemove', handleMouseMove);
+  
+      return () => {
+        window.removeEventListener(
+          'mousemove',
+          handleMouseMove
+        );
+      };
+    }, []);
+
+
   useEffect(() => {
     setLoading(true);
     const apiUrl = `https://book-memory-sections-out.itlabs.top/api/members`;
@@ -54,10 +110,11 @@ export default function HomePage() {
   function changeScrollerPosition() {
     const winScroll = document.getElementById("scrollable")!.scrollLeft;
     const width =
-      document.getElementById("scrollable")!.scrollWidth;
-    const scrolled = (winScroll / width) * 10000;
-    document.getElementById("horScroll")!.style.translate =
-      scrolled + "px";
+    (11200 * currentPage +428) -
+    document.documentElement.clientWidth;
+    const scrolled = (winScroll / width) * 100;
+    handScroller!.style.translate =
+      scrolled * 15 + "px";
   }
 
   return (
@@ -85,19 +142,24 @@ export default function HomePage() {
             Фильтр
           </button>
           <div className="w-[1248px] h-full flex gap-[20px] items-center relative">
-            <div className="min-w-[380px] h-full text-light-brown uppercase tracking-[4.8px] leading-[100%] flex gap-[16px] justify-center items-center text-[40px]">
+            <div 
+            onClick={()=>{}}
+            className="min-w-[380px] h-full text-light-brown uppercase tracking-[4.8px] leading-[100%] flex gap-[16px] justify-center items-center text-[40px]">
               Стена памяти
             </div>
-            <div className="w-full h-[1px] border-t-2 border-light-brown border-dashed">
+            <div
+              className="w-full h-[1px] border-t-2 border-light-brown border-dashed">
+                <div className={"size-[64px]"} id="handScroll">
               <img
-                id="horScroll"
                 src={scroll}
                 alt="scroll"
                 className={`absolute mt-[-33px]`}
               />
+              </div>
             </div>
           </div>
         </div>
+        
         {(isLoading && currentPage===1) && (
           <div className="w-[50px] h-[50px] outline outline-dotted outline-light-brown outline-[10px] rounded-full animate-spin absolute left-0 right-0 mx-auto mt-[180px]"/>
         )}
@@ -106,7 +168,7 @@ export default function HomePage() {
           className={`w-[1840px] overflow-x-scroll hide-scroll grid grid-rows-2 grid-flow-col gap-[16px] mt-[40px]`}
           id="scrollable"
           onScroll={function () {
-            changeScrollerPosition();
+            (!isScrolling && changeScrollerPosition());
           }}
         >
           {allPersons!.map((person: Person, index: number) => (

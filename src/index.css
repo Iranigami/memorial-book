@@ -49,3 +49,30 @@ body {
   color: white;
   opacity: 1; /* Firefox */
 }
+
+#slider .noUi-connect {
+	background: #EF7A7D;
+}
+
+#slider .noUi-connects {
+
+  border: none; /* Убираем границы */
+  background-color: #8B8785; /* Серый фон для трека */
+}
+
+#slider .noUi-handle {
+  background: #CF3337;
+  cursor: default;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  box-shadow: none;
+  transform: translateY(-5px);
+}
+.slider .noUi-handle::after {
+  display: none;
+}
+.slider .noUi-handle::before {
+  display: none; 
+}

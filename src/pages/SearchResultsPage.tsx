@@ -17,6 +17,8 @@ export default function HomePage() {
   const [isLastPageLoaded, setLastPageLoaded] = useState(false);
   const [allPersons, setAllPersons] = useState<Persons>([]);
 
+  const handScroller = document.getElementById("handScroll");
+
   const lastItemRef = useCallback((node: any) => {
     if (isLoading) return
     if (observer.current) observer.current.disconnect() 
@@ -56,10 +58,11 @@ export default function HomePage() {
   function changeScrollerPosition() {
     const winScroll = document.getElementById("scrollable")!.scrollLeft;
     const width =
-      document.getElementById("scrollable")!.scrollWidth;
-    const scrolled = (winScroll / width) * 10000;
-    document.getElementById("horScroll")!.style.translate =
-      scrolled + "px";
+    (11200 * currentPage +428) -
+    document.documentElement.clientWidth;
+    const scrolled = (winScroll / width) * 100;
+    handScroller!.style.translate =
+      scrolled * 15 + "px";
   }
 
   return (
@@ -93,7 +96,7 @@ export default function HomePage() {
             </div>
             <div className="w-full h-[1px] border-t-2 border-light-brown border-dashed">
               <img
-                id="horScroll"
+                id="handScroll"
                 src={scroll}
                 alt="scroll"
                 className={`absolute mt-[-33px]`}
