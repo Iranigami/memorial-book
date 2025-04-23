@@ -8,6 +8,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Person, Persons } from "../conf";
 
+
 export default function HomePage() {
   const navigate = useNavigate();
   const observer = useRef<IntersectionObserver | null>(null)
@@ -16,8 +17,75 @@ export default function HomePage() {
   const [searchParams] = useSearchParams();
   const [isLastPageLoaded, setLastPageLoaded] = useState(false);
   const [allPersons, setAllPersons] = useState<Persons>([]);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollByDragPos = useRef(0);
+  const scrollByscrollByDragPos = useRef(0); 
 
   const handScroller = document.getElementById("handScroll");
+
+  if(handScroller!==null) {
+    handScroller.ondragstart = function() {
+      return false;
+    };
+    let isDragging = false;
+    let startX = 0;
+  
+    const moveAt = (clientX: number) => {
+      setIsScrolling(true);
+      const limitClientX = clientX > 2000 ? 900 : clientX < 1100 ? 0 : clientX - 1100;
+      handScroller.style.transform = `translate(${limitClientX - scrollByscrollByDragPos.current}px)`;
+      document.getElementById("scrollable")!.scrollLeft =
+        limitClientX *
+        (11200 * currentPage + 428 - document.documentElement.clientWidth) /
+        1500;
+      scrollByDragPos.current = limitClientX - scrollByscrollByDragPos.current;
+    };
+
+    const handleStart = (event: MouseEvent | TouchEvent) => {
+      isDragging = true;
+      handScroller.style.position = 'absolute';
+      handScroller.style.zIndex = "1000";
+  
+      if ('touches' in event) {
+        startX = event.touches[0].clientX;
+      } else {
+        startX = event.clientX;
+      }
+  
+      moveAt(startX);
+    };
+      const handleMove = (event: MouseEvent | TouchEvent) => {
+      if (!isDragging) return;
+  
+      let currentX = 0;
+      if ('touches' in event) {
+        currentX = event.touches[0].clientX;
+      } else {
+        currentX = event.clientX;
+      }
+  
+      moveAt(currentX);
+    };
+      const handleEnd = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('touchmove', handleMove);
+      setIsScrolling(false);
+      changeScrollerPosition();
+      
+    };
+      handScroller.addEventListener('mousedown', handleStart);
+    handScroller.addEventListener('touchstart', handleStart);
+  
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('touchmove', handleMove);
+  
+    document.addEventListener('mouseup', handleEnd);
+    document.addEventListener('touchend', handleEnd);
+  }
+
+
 
   const lastItemRef = useCallback((node: any) => {
     if (isLoading) return
@@ -62,7 +130,8 @@ export default function HomePage() {
     document.documentElement.clientWidth;
     const scrolled = (winScroll / width) * 100;
     handScroller!.style.translate =
-      scrolled * 15 + "px";
+      scrolled * 15 - scrollByDragPos.current + "px";
+      scrollByscrollByDragPos.current = scrolled * 15 - scrollByDragPos.current;
   }
 
   return (
@@ -111,8 +180,8 @@ export default function HomePage() {
           id="scrollable"
           hidden = {(isLoading&&currentPage===1)}
           className={`w-[1840px] overflow-x-scroll hide-scroll grid grid-rows-2 grid-flow-col gap-[16px] mt-[40px]`}
-          onScroll={function () {
-            changeScrollerPosition();
+          onScroll={() => {
+            (!isScrolling && changeScrollerPosition());
           }}
         >
           {allPersons!.map((person: Person, index: number) => (

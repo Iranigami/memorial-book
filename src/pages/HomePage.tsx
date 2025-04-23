@@ -11,10 +11,6 @@ import axios from "axios";
 import { Person, Persons } from "../conf";
 
 export default function HomePage() {
-
-
-
-
   const navigate = useNavigate();
   const observer = useRef<IntersectionObserver | null>(null)
   const [isModalOpen, setModalOpen] = useState(false);
@@ -23,6 +19,8 @@ export default function HomePage() {
   const [isLastPageLoaded, setLastPageLoaded] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
+  const scrollByDragPos = useRef(0);
+  const scrollByscrollByDragPos = useRef(0); 
 
   const handScroller = document.getElementById("handScroll")!;
 
@@ -30,31 +28,60 @@ export default function HomePage() {
     handScroller.ondragstart = function() {
       return false;
     };
-    handScroller.onmousedown = function(event) { 
+    let isDragging = false;
+    let startX = scrollByscrollByDragPos.current;
+  
+    const moveAt = (clientX: number) => {
+      setIsScrolling(true);
+      const limitClientX = clientX > 2000 ? 900 : clientX < 1100 ? 0 : clientX - 1100;
+      handScroller.style.transform = `translate(${limitClientX - scrollByscrollByDragPos.current}px)`;
+      document.getElementById("scrollable")!.scrollLeft =
+        limitClientX *
+        (11200 * currentPage + 428 - document.documentElement.clientWidth) /
+        1500;
+      scrollByDragPos.current = limitClientX - scrollByscrollByDragPos.current;
+    };
+    const handleStart = (event: MouseEvent | TouchEvent) => {
+      isDragging = true;
       handScroller.style.position = 'absolute';
       handScroller.style.zIndex = "1000";
-    
-      moveAt(event.pageX);
-      function moveAt(pageX: number) {
-        setIsScrolling(true);
-        const limitPageX = (pageX > 2000 ? 900 : (pageX < 1100 ? 0 : pageX - 1100))
-        handScroller.style.translate = limitPageX + 'px';
-        document.getElementById("scrollable")!.scrollLeft = limitPageX * (11200 * currentPage + 428 - document.documentElement.clientWidth) / 1500;
-
+  
+      if ('touches' in event) {
+        startX = event.touches[0].clientX;
+      } else {
+        startX = event.clientX;
       }
-    
-      function onMouseMove(event: any) {
-        moveAt(event.pageX);
-      }
-      document.addEventListener('mousemove', onMouseMove);
-      handScroller.onmouseup = function() {
-        document.removeEventListener('mousemove', onMouseMove);
-        handScroller.onmouseup = null;
-        setIsScrolling(false);
-        changeScrollerPosition();
-      };
-    
+  
+      moveAt(startX);
     };
+      const handleMove = (event: MouseEvent | TouchEvent) => {
+      if (!isDragging) return;
+  
+      let currentX = 0;
+      if ('touches' in event) {
+        currentX = event.touches[0].clientX;
+      } else {
+        currentX = event.clientX;
+      }
+  
+      moveAt(currentX);
+    };
+      const handleEnd = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('touchmove', handleMove);
+      setIsScrolling(false);
+      changeScrollerPosition();
+    };
+      handScroller.addEventListener('mousedown', handleStart);
+    handScroller.addEventListener('touchstart', handleStart);
+  
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('touchmove', handleMove);
+  
+    document.addEventListener('mouseup', handleEnd);
+    document.addEventListener('touchend', handleEnd);
   }
 
 
@@ -70,23 +97,6 @@ export default function HomePage() {
   
       if (node) observer.current.observe(node) 
     }, [isLoading])
-  
-    const mousePos = useRef({x: 0, y: 0});
-
-    useEffect(() => {
-      const handleMouseMove = (event: any) => {
-        mousePos.current= { x: event.clientX, y: event.clientY };
-      };
-  
-      window.addEventListener('mousemove', handleMouseMove);
-  
-      return () => {
-        window.removeEventListener(
-          'mousemove',
-          handleMouseMove
-        );
-      };
-    }, []);
 
 
   useEffect(() => {
@@ -114,7 +124,8 @@ export default function HomePage() {
     document.documentElement.clientWidth;
     const scrolled = (winScroll / width) * 100;
     handScroller!.style.translate =
-      scrolled * 15 + "px";
+      scrolled * 15 - scrollByDragPos.current + "px";
+      scrollByscrollByDragPos.current = scrolled * 15 - scrollByDragPos.current;
   }
 
   return (
@@ -167,7 +178,7 @@ export default function HomePage() {
           hidden = {(isLoading&&currentPage===1)}
           className={`w-[1840px] overflow-x-scroll hide-scroll grid grid-rows-2 grid-flow-col gap-[16px] mt-[40px]`}
           id="scrollable"
-          onScroll={function () {
+          onScroll={() => {
             (!isScrolling && changeScrollerPosition());
           }}
         >
