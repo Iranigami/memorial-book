@@ -19,14 +19,14 @@ const singleHandleStyle = () => {
     height: HANDLER_DIAMETER,
     width: HANDLER_DIAMETER,
     marginTop,
-    borderColor: "#3EF08F"
+    borderColor: "#3EF08F",
   } as CSSProperties;
 };
 const handleStyle = range(COUNT + 1).map(() => singleHandleStyle());
 
 function map2<T, U>(
   array: T[],
-  mapper: (current: T, next: T, index: number, array: T[]) => U
+  mapper: (current: T, next: T, index: number, array: T[]) => U,
 ): U[] {
   return array.slice(1).map((next, i) => mapper(array[i], next, i, array));
 }
@@ -44,10 +44,10 @@ function rangesAddPushble(newRanges: number[], pushable: number = 0) {
   const firstRange = scaledRange(newRanges[0], [0, 100 - 2 * pushable]);
   const lastRange = scaledRange(newRanges[newRanges.length - 1], [
     0,
-    100 - 2 * pushable
+    100 - 2 * pushable,
   ]);
   const middleRanges = slice(newRanges, 1, newRanges.length - 1).map((r) =>
-    scaledRange(r, [pushable, 100 - pushable])
+    scaledRange(r, [pushable, 100 - pushable]),
   );
 
   return [firstRange, ...middleRanges, lastRange];
@@ -66,7 +66,7 @@ const rangesToPositions = (ranges: number[]) =>
     ranges.reduce((acc: number[], curr, i) => {
       return i === 0 ? [curr] : [...acc, curr + acc[i - 1]];
     }, []),
-    3
+    3,
   );
 
 const positionsToRanges = (positions: number[]) => {
@@ -74,7 +74,7 @@ const positionsToRanges = (positions: number[]) => {
     positions[0] - RANGE[0],
     positions[1] - positions[0],
     positions[2] - positions[1],
-    RANGE[1] - positions[2]
+    RANGE[1] - positions[2],
   ];
 };
 
@@ -83,11 +83,11 @@ export default function SliderRange({
   label,
   colors,
   width,
-  onRangesChange
+  onRangesChange,
 }: SliderRangeProps) {
   const trackStyle = colors.slice(1).map((c) => ({
     backgroundColor: c,
-    height: RAIL_HEIGHT
+    height: RAIL_HEIGHT,
   }));
 
   const pushable = round((HANDLER_DIAMETER / width) * (RANGE[1] - RANGE[0]), 2);
@@ -142,7 +142,7 @@ export default function SliderRange({
           background: `linear-gradient(to right, ${colors[0]} ${ranges[0]}%, ${
             colors[colors.length - 1]
           } ${ranges[0]}%)`,
-          height: RAIL_HEIGHT
+          height: RAIL_HEIGHT,
         }}
         onChange={
           ((d: number[]) => {

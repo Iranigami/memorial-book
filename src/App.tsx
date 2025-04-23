@@ -11,7 +11,6 @@ import SearchResultPage from "./pages/SearchResultsPage";
 import PersonPage from "./pages/PersonPage";
 
 function App() {
-
   const id = useRef(0);
 
   return (
@@ -20,7 +19,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/result" element={<SearchResultPage />} />
-        <Route path="/person/:personId" element={<PersonPage/>} />
+        <Route path="/person/:personId" element={<PersonPage />} />
       </Routes>
     </Router>
   );

@@ -12,7 +12,7 @@ import { Person, Persons } from "../conf";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const observer = useRef<IntersectionObserver | null>(null)
+  const observer = useRef<IntersectionObserver | null>(null);
   const [isModalOpen, setModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [allPersons, setAllPersons] = useState<Persons>([]);
@@ -20,112 +20,112 @@ export default function HomePage() {
   const [isLoading, setLoading] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollByDragPos = useRef(0);
-  const scrollByscrollByDragPos = useRef(0); 
+  const scrollByscrollByDragPos = useRef(0);
 
   const handScroller = document.getElementById("handScroll")!;
 
-  if(handScroller!==null) {
-    handScroller.ondragstart = function() {
+  if (handScroller !== null) {
+    handScroller.ondragstart = function () {
       return false;
     };
     let isDragging = false;
     let startX = scrollByscrollByDragPos.current;
-  
+
     const moveAt = (clientX: number) => {
       setIsScrolling(true);
-      const limitClientX = clientX > 2000 ? 900 : clientX < 1100 ? 0 : clientX - 1100;
+      const limitClientX =
+        clientX > 2000 ? 900 : clientX < 1100 ? 0 : clientX - 1100;
       handScroller.style.transform = `translate(${limitClientX - scrollByscrollByDragPos.current}px)`;
       document.getElementById("scrollable")!.scrollLeft =
-        limitClientX *
-        (11200 * currentPage + 428 - document.documentElement.clientWidth) /
+        (limitClientX *
+          (11200 * currentPage + 428 - document.documentElement.clientWidth)) /
         1500;
       scrollByDragPos.current = limitClientX - scrollByscrollByDragPos.current;
     };
     const handleStart = (event: MouseEvent | TouchEvent) => {
       isDragging = true;
-      handScroller.style.position = 'absolute';
+      handScroller.style.position = "absolute";
       handScroller.style.zIndex = "1000";
-  
-      if ('touches' in event) {
+
+      if ("touches" in event) {
         startX = event.touches[0].clientX;
       } else {
         startX = event.clientX;
       }
-  
+
       moveAt(startX);
     };
-      const handleMove = (event: MouseEvent | TouchEvent) => {
+    const handleMove = (event: MouseEvent | TouchEvent) => {
       if (!isDragging) return;
-  
+
       let currentX = 0;
-      if ('touches' in event) {
+      if ("touches" in event) {
         currentX = event.touches[0].clientX;
       } else {
         currentX = event.clientX;
       }
-  
+
       moveAt(currentX);
     };
-      const handleEnd = () => {
+    const handleEnd = () => {
       if (!isDragging) return;
       isDragging = false;
-      document.removeEventListener('mousemove', handleMove);
-      document.removeEventListener('touchmove', handleMove);
+      document.removeEventListener("mousemove", handleMove);
+      document.removeEventListener("touchmove", handleMove);
       setIsScrolling(false);
       changeScrollerPosition();
     };
-      handScroller.addEventListener('mousedown', handleStart);
-    handScroller.addEventListener('touchstart', handleStart);
-  
-    document.addEventListener('mousemove', handleMove);
-    document.addEventListener('touchmove', handleMove);
-  
-    document.addEventListener('mouseup', handleEnd);
-    document.addEventListener('touchend', handleEnd);
+    handScroller.addEventListener("mousedown", handleStart);
+    handScroller.addEventListener("touchstart", handleStart);
+
+    document.addEventListener("mousemove", handleMove);
+    document.addEventListener("touchmove", handleMove);
+
+    document.addEventListener("mouseup", handleEnd);
+    document.addEventListener("touchend", handleEnd);
   }
 
+  const lastItemRef = useCallback(
+    (node: any) => {
+      if (isLoading) return;
+      if (observer.current) observer.current.disconnect();
 
-    const lastItemRef = useCallback((node: any) => {
-      if (isLoading) return
-      if (observer.current) observer.current.disconnect() 
-  
-      observer.current = new IntersectionObserver(entries => { 
+      observer.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && !isLastPageLoaded) {
-          setCurrentPage(currentPage+1)
+          setCurrentPage(currentPage + 1);
         }
-      })
-  
-      if (node) observer.current.observe(node) 
-    }, [isLoading])
+      });
 
+      if (node) observer.current.observe(node);
+    },
+    [isLoading],
+  );
 
   useEffect(() => {
     setLoading(true);
     const apiUrl = `https://book-memory-sections-out.itlabs.top/api/members`;
-    axios.get(apiUrl, {
-      params: {
-        itemsPerPage: 50,
-        page: currentPage,
-      }
-    })    .then(response => {
-      (response.data[0] === undefined) && setLastPageLoaded(true)
-      setAllPersons(prevState => [
-        ...prevState,
-        ...response.data
-      ]);
-      setLoading(false);    })
+    axios
+      .get(apiUrl, {
+        params: {
+          itemsPerPage: 50,
+          page: currentPage,
+        },
+      })
+      .then((response) => {
+        response.data[0] === undefined && setLastPageLoaded(true);
+        setAllPersons((prevState) => [...prevState, ...response.data]);
+        setLoading(false);
+      });
   }, [currentPage]);
-
 
   function changeScrollerPosition() {
     const winScroll = document.getElementById("scrollable")!.scrollLeft;
     const width =
-    (11200 * currentPage +428) -
-    document.documentElement.clientWidth;
+      11200 * currentPage + 428 - document.documentElement.clientWidth;
     const scrolled = (winScroll / width) * 100;
     handScroller!.style.translate =
       scrolled * 15 - scrollByDragPos.current + "px";
-      scrollByscrollByDragPos.current = scrolled * 15 - scrollByDragPos.current;
+    scrollByscrollByDragPos.current = scrolled * 15 - scrollByDragPos.current;
   }
 
   return (
@@ -153,38 +153,38 @@ export default function HomePage() {
             Фильтр
           </button>
           <div className="w-[1248px] h-full flex gap-[20px] items-center relative">
-            <div 
-            onClick={()=>{}}
-            className="min-w-[380px] h-full text-light-brown uppercase tracking-[4.8px] leading-[100%] flex gap-[16px] justify-center items-center text-[40px]">
+            <div
+              onClick={() => {}}
+              className="min-w-[380px] h-full text-light-brown uppercase tracking-[4.8px] leading-[100%] flex gap-[16px] justify-center items-center text-[40px]"
+            >
               Стена памяти
             </div>
-            <div
-              className="w-full h-[1px] border-t-2 border-light-brown border-dashed">
-                <div className={"size-[64px]"} id="handScroll">
-              <img
-                src={scroll}
-                alt="scroll"
-                className={`absolute mt-[-33px]`}
-              />
+            <div className="w-full h-[1px] border-t-2 border-light-brown border-dashed">
+              <div className={"size-[64px]"} id="handScroll">
+                <img
+                  src={scroll}
+                  alt="scroll"
+                  className={`absolute mt-[-33px]`}
+                />
               </div>
             </div>
           </div>
         </div>
-        
-        {(isLoading && currentPage===1) && (
-          <div className="w-[50px] h-[50px] outline outline-dotted outline-light-brown outline-[10px] rounded-full animate-spin absolute left-0 right-0 mx-auto mt-[180px]"/>
+
+        {isLoading && currentPage === 1 && (
+          <div className="w-[50px] h-[50px] outline outline-dotted outline-light-brown outline-[10px] rounded-full animate-spin absolute left-0 right-0 mx-auto mt-[180px]" />
         )}
         <div
-          hidden = {(isLoading&&currentPage===1)}
+          hidden={isLoading && currentPage === 1}
           className={`w-[1840px] overflow-x-scroll hide-scroll grid grid-rows-2 grid-flow-col gap-[16px] mt-[40px]`}
           id="scrollable"
           onScroll={() => {
-            (!isScrolling && changeScrollerPosition());
+            !isScrolling && changeScrollerPosition();
           }}
         >
           {allPersons!.map((person: Person, index: number) => (
             <div
-              onClick = {() => navigate(`/person/${person.id}`)}
+              onClick={() => navigate(`/person/${person.id}`)}
               key={index}
               className={`relative items-end flex ${index === 0 ? "col-span-2 row-span-2 w-[428px] h-[571px] p-[24px]" : "w-[208px] h-[277px] p-[12px]"}`}
             >
@@ -193,15 +193,18 @@ export default function HomePage() {
                 alt="photo"
                 className={`w-full h-full absolute z-[-1] ${index === 0 ? "m-[-24px]" : "m-[-12px]"}`}
               />
-              <span className={`w-full text-white leading-[100%] tracking-[0px] italic font-bold z-1 ${index === 0 ? "text-[28px]" : "text-[16px]"}`}>
+              <span
+                className={`w-full text-white leading-[100%] tracking-[0px] italic font-bold z-1 ${index === 0 ? "text-[28px]" : "text-[16px]"}`}
+              >
                 {person.name}
               </span>
             </div>
           ))}
-            <div 
-              hidden = {isLastPageLoaded}
-              ref={lastItemRef}
-              className="w-[30px] h-[30px] outline outline-dotted outline-light-brown outline-[10px] rounded-full animate-spin mx-auto mt-[100px]"/>
+          <div
+            hidden={isLastPageLoaded}
+            ref={lastItemRef}
+            className="w-[30px] h-[30px] outline outline-dotted outline-light-brown outline-[10px] rounded-full animate-spin mx-auto mt-[100px]"
+          />
         </div>
       </div>
       <FilterModal opened={isModalOpen} onClose={() => setModalOpen(false)} />

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme {
+  --font-montserrat: "Montserrat", sans-serif;
   --color-coast-white: #f2e5cc;
   --color-cream: #c1a886;
   --color-red: #cf3337;
@@ -51,17 +52,16 @@ body {
 }
 
 #slider .noUi-connect {
-	background: #EF7A7D;
+  background: #ef7a7d;
 }
 
 #slider .noUi-connects {
-
   border: none; /* Убираем границы */
-  background-color: #8B8785; /* Серый фон для трека */
+  background-color: #8b8785; /* Серый фон для трека */
 }
 
 #slider .noUi-handle {
-  background: #CF3337;
+  background: #cf3337;
   cursor: default;
   width: 32px;
   height: 32px;
@@ -74,5 +74,14 @@ body {
   display: none;
 }
 .slider .noUi-handle::before {
-  display: none; 
+  display: none;
+}
+
+.key-shadow {
+  box-shadow: 0px 1px 0px 0px #0000004d;
+}
+
+@font-face {
+  font-family: "Montserrat", sans-serif;
+  src: local("Montserrat"), url(./assets/Montserrat-Medium.ttf);
 }
